@@ -1,0 +1,59 @@
+
+/**
+ * {{{description}}}
+{{#allVars}}
+ * @param {{{name}}} {{{description}}}
+{{/allVars}}
+ */
+
+{{^discriminator}}
+{{#isDeprecated}}
+@Deprecated(message = "This schema is deprecated.")
+{{/isDeprecated}}
+{{#nonPublicApi}}internal {{/nonPublicApi}}object {{{classname}}}s : BaseTable<{{{classname}}}> (
+{{#allVars}}
+{{#required}}{{>data_class_req_var}}{{/required}}{{^required}}{{>data_class_opt_var}}{{/required}}{{^-last}},{{/-last}}
+{{/allVars}} ) {
+
+    override fun doCreateEntity(row: QueryRowSet, withReferences: Boolean) = {{{classname}}}(
+{{#allVars}}
+{{#required}}{{>data_class_req_bind}}{{/required}}{{^required}}{{>data_class_opt_bind}}{{/required}}{{^-last}},{{/-last}}
+{{/allVars}}
+    )
+}{{/discriminator}}
+
+{{#hasEnums}}
+{{#vars}}
+{{#isEnum}}
+    /**
+    * {{{description}}}
+    * Values: {{#allowableValues}}{{#enumVars}}{{&name}}{{^-last}},{{/-last}}{{/enumVars}}{{/allowableValues}}
+    */
+    {{#multiplatform}}@Serializable(with = {{nameInCamelCase}}.Serializer::class){{/multiplatform}}
+    {{#nonPublicApi}}internal {{/nonPublicApi}}enum class {{{nameInCamelCase}}}(val value: {{^isContainer}}{{dataType}}{{/isContainer}}{{#isContainer}}kotlin.String{{/isContainer}}){
+    {{#allowableValues}}
+    {{#enumVars}}
+        {{^multiplatform}}
+        {{#moshi}}
+        @Json(name = {{^isString}}"{{/isString}}{{{value}}}{{^isString}}"{{/isString}}) {{&name}}({{{value}}}){{^-last}},{{/-last}}{{#-last}};{{/-last}}
+        {{/moshi}}
+        {{#gson}}
+        @SerializedName(value = {{^isString}}"{{/isString}}{{{value}}}{{^isString}}"{{/isString}}) {{&name}}({{{value}}}){{^-last}},{{/-last}}{{#-last}};{{/-last}}
+        {{/gson}}
+        {{#jackson}}
+        @JsonProperty(value = {{^isString}}"{{/isString}}{{{value}}}{{^isString}}"{{/isString}}) {{&name}}({{{value}}}){{^-last}},{{/-last}}{{#-last}};{{/-last}}
+        {{/jackson}}
+        {{/multiplatform}}
+        {{#multiplatform}}
+        {{&name}}({{{value}}}){{^-last}},{{/-last}}{{#-last}};{{/-last}}
+        {{/multiplatform}}
+    {{/enumVars}}
+    {{/allowableValues}}
+    {{#multiplatform}}
+
+        {{#nonPublicApi}}internal {{/nonPublicApi}}object Serializer : CommonEnumSerializer<{{nameInCamelCase}}>("{{nameInCamelCase}}", values(), values().map { it.value.toString() }.toTypedArray())
+    {{/multiplatform}}
+    }
+{{/isEnum}}
+{{/vars}}
+{{/hasEnums}}
